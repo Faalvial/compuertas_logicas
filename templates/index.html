@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compuertas a mano · UNI</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="barra">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Uni-logo_transparente_granate.png" alt="UNI" class="logo">
+    <div>
+      <p class="sub">PC2 · Computación Gráfica</p>
+      <p class="sub">Clasificación de compuertas lógicas dibujadas a mano</p>
+    </div>
+  </header>
+
+  <main class="contenido">
+    <h1>Dibuja una compuerta <span id="clase" class="clase">{{ clase }}</span></h1>
+
+    <div class="zona">
+      <section class="referencia" aria-label="Referencia">
+        <p class="etiqueta">Referencia</p>
+        <svg id="ref-svg" viewBox="0 0 90 50" fill="none" stroke="currentColor" stroke-width="2.4"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ compuertas[clase].svg|safe }}</svg>
+        <p id="tip" class="tip">{{ compuertas[clase].tip }}</p>
+        <ul class="reglas">
+          <li>Dibújala horizontal: entradas a la izquierda, salida a la derecha.</li>
+          <li>Incluye las líneas de entrada y de salida.</li>
+          <li>Usa buena parte del recuadro.</li>
+        </ul>
+      </section>
+
+      <section class="dibujo" aria-label="Lienzo">
+        <canvas id="lienzo" width="{{ tam }}" height="{{ tam }}" aria-label="Lienzo de dibujo"></canvas>
+        <div class="botones">
+          <button type="button" id="deshacer">Deshacer</button>
+          <button type="button" id="borrar">Borrar</button>
+          <button type="button" id="enviar" class="principal" disabled>Enviar</button>
+        </div>
+        <p id="aviso" class="aviso" role="status"></p>
+        <label class="autor">Tu nombre (opcional)
+          <input id="autor" type="text" maxlength="20" autocomplete="nickname" placeholder="ej. maria">
+        </label>
+      </section>
+    </div>
+
+    <section class="progreso" aria-label="Progreso">
+      <p class="etiqueta">Dibujos recolectados (meta: {{ meta }} por compuerta)</p>
+      <ul id="conteos">
+        {% for c in clases %}
+        <li data-clase="{{ c }}">
+          <span class="nombre">{{ c }}</span>
+          <span class="barra-fondo"><span class="barra-lleno" style="width: {{ [100, conteos[c] * 100 // meta]|min }}%"></span></span>
+          <span class="numero">{{ conteos[c] }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <footer class="pie">
+      <a href="{{ url_for('revisar') }}">Revisar dibujos</a>
+      <a href="{{ url_for('download_zip') }}">Descargar dataset (.zip)</a>
+    </footer>
+  </main>
+
+  <script>
+    const COMPUERTAS = {{ compuertas|tojson }};
+    const META = {{ meta }};
+  </script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

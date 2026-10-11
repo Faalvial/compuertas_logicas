@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Revisar dibujos · {{ clase }}</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="contenido">
+    <h1>Revisar dibujos <span class="clase">{{ clase }}</span></h1>
+    <nav class="pestanas">
+      {% for c in clases %}
+      <a href="{{ url_for('revisar', clase=c) }}" class="{{ 'activa' if c == clase else '' }}">{{ c }} ({{ conteos[c] }})</a>
+      {% endfor %}
+      <a href="{{ url_for('main') }}">Volver a dibujar</a>
+    </nav>
+
+    {% if borrado_activo %}
+    <label class="clave">Clave de administrador
+      <input id="clave" type="password" autocomplete="off">
+    </label>
+    <p class="etiqueta">Pulsa “Descartar” en los dibujos que no se parecen a {{ clase }}. Se mueven a la carpeta descartados/, no se borran.</p>
+    {% else %}
+    <p class="etiqueta">Descartar está desactivado: define la variable CLAVE_ADMIN en el servidor para activarlo.</p>
+    {% endif %}
+
+    <div class="galeria">
+      {% for nombre in imagenes %}
+      <figure data-nombre="{{ nombre }}">
+        <img src="{{ url_for('imagen', clase=clase, nombre=nombre) }}" alt="{{ clase }} {{ nombre }}" loading="lazy">
+        <figcaption>{{ nombre.split('_')[1] }}</figcaption>
+        {% if borrado_activo %}<button type="button" class="descartar">Descartar</button>{% endif %}
+      </figure>
+      {% else %}
+      <p>Todavía no hay dibujos de {{ clase }}.</p>
+      {% endfor %}
+    </div>
+
+    {% if total_paginas > 1 %}
+    <nav class="pestanas">
+      {% for p in range(1, total_paginas + 1) %}
+      <a href="{{ url_for('revisar', clase=clase, pagina=p) }}" class="{{ 'activa' if p == pagina else '' }}">{{ p }}</a>
+      {% endfor %}
+    </nav>
+    {% endif %}
+  </main>
+
+  {% if borrado_activo %}
+  <script>
+    document.querySelectorAll('.descartar').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const fig = btn.closest('figure');
+        const resp = await fetch('/descartar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clase: {{ clase|tojson }},
+            nombre: fig.dataset.nombre,
+            clave: document.getElementById('clave').value,
+          }),
+        });
+        const datos = await resp.json();
+        if (datos.ok) fig.remove();
+        else btn.textContent = datos.error;
+      });
+    });
+  </script>
+  {% endif %}
+</body>
+</html>
