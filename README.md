@@ -88,6 +88,15 @@ Para actualizar el código: en la consola, `cd <repo> && git pull`, y luego **Re
 
 La app gratuita se apaga a los 3 meses si nadie pulsa **Run until 3 months from today** en la pestaña Web.
 
+## Entrenamiento (notebook)
+
+`entrenamiento_compuertas.ipynb` hace todo el proceso: carga, preprocesamiento, exploración, un MLP base, la CNN, métricas (accuracy, precisión, recall, F1, matriz de confusión), análisis de las parejas difíciles (AND/NAND, OR/NOR, OR/XOR), el experimento de resolución (16, 28 y 64 píxeles) y la prueba con personas que no se usaron para entrenar.
+
+Para correrlo en Google Colab:
+1. Abrir https://colab.research.google.com y subir el notebook (Archivo → Subir notebook).
+2. En la primera celda de código, poner la dirección de la app en `URL_DATASET` (por ejemplo `https://<usuario>.pythonanywhere.com/dataset.zip`), o dejarla vacía y subir el `.zip` cuando lo pida.
+3. Entorno de ejecución → Ejecutar todo. Con GPU (Entorno de ejecución → Cambiar tipo de entorno) es más rápido, pero no es obligatorio.
+
 ## Recolección
 
 - Meta: 500 dibujos por compuerta, 3000 en total (unos 750 por integrante).
