@@ -45,7 +45,14 @@ python main.py
 Abrir http://127.0.0.1:5000. Para activar el descarte de dibujos en `/revisar`, definir antes la variable `CLAVE_ADMIN`:
 
 ```bash
+# Linux / Mac
 CLAVE_ADMIN=mi-clave python main.py
+```
+
+```powershell
+# Windows (PowerShell)
+$env:CLAVE_ADMIN = "mi-clave"
+python main.py
 ```
 
 ## Desplegar gratis en PythonAnywhere
