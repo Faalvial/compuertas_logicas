@@ -98,6 +98,12 @@ def main():
     )
 
 
+@app.route("/probar")
+def probar():
+    """Dibuja y la red adivina la compuerta (la predicción corre en el navegador)."""
+    return render_template("probar.html", tam=TAM_LIENZO)
+
+
 @app.route("/upload", methods=["POST"])
 def upload():
     datos = request.get_json(silent=True) or {}

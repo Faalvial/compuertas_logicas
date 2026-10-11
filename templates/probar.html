@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adivina tu dibujo · Compuertas</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="contenido">
+    <h1>Adivina tu dibujo</h1>
+    <p class="etiqueta">Dibuja cualquier compuerta y la red neuronal dirá cuál es. La predicción se calcula en tu navegador.</p>
+
+    <div class="zona zona-probar">
+      <section class="dibujo" aria-label="Lienzo">
+        <canvas id="lienzo" width="{{ tam }}" height="{{ tam }}" aria-label="Lienzo de dibujo"></canvas>
+        <div class="botones">
+          <button type="button" id="deshacer">Deshacer</button>
+          <button type="button" id="borrar">Borrar</button>
+        </div>
+      </section>
+
+      <section class="referencia resultado" aria-label="Predicción" aria-live="polite">
+        <p class="etiqueta">Predicción</p>
+        <p id="ganadora" class="ganadora">…</p>
+        <ul id="probabilidades" class="probabilidades"></ul>
+        <div class="vista-red">
+          <canvas id="entrada-red" width="64" height="64" aria-label="Imagen que recibe la red"></canvas>
+          <p id="detalle" class="tip-suave">Así ve la red tu dibujo después del preprocesamiento.</p>
+        </div>
+      </section>
+    </div>
+
+    <footer class="pie">
+      <a href="{{ url_for('main') }}">Volver a recolectar</a>
+    </footer>
+  </main>
+
+  <script src="{{ url_for('static', filename='modelo.js') }}"></script>
+  <script>
+    const BASE_MODELO = {{ url_for('static', filename='modelo/')|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='probar.js') }}"></script>
+</body>
+</html>

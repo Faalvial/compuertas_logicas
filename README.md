@@ -19,12 +19,14 @@ Adaptado de [PeterTXS09/letras_uni](https://github.com/PeterTXS09/letras_uni), q
 | | Descarga de todos los PNG en `/dataset.zip` |
 | | Página `/revisar` para ver los dibujos y descartar los malos |
 | | Contador de progreso por compuerta (meta: 500) |
+| | Página `/probar` que predice la compuerta en vivo, en el navegador |
 
 ## Rutas
 
 | Ruta | Qué hace |
 |---|---|
 | `/` | Página para dibujar |
+| `/probar` | “Adivina tu dibujo”: dibujas y la red dice qué compuerta es |
 | `/upload` (POST) | Guarda un dibujo en `data/<CLASE>/` |
 | `/stats` | Conteo por clase en JSON |
 | `/revisar?clase=AND` | Galería de dibujos de una clase |
@@ -84,7 +86,7 @@ PythonAnywhere conserva los archivos guardados en disco, así que los dibujos no
 6. (Opcional, más rápido) En **Static files**, agregar URL `/static/` con directorio `/home/<usuario>/<repo>/static`.
 7. Pulsar **Reload** y abrir `https://<usuario>.pythonanywhere.com`.
 
-Para actualizar el código: en la consola, `cd <repo> && git pull`, y luego **Reload** en la pestaña Web. Los dibujos de `data/` no se tocan porque están en `.gitignore`.
+Para actualizar el código: en la consola, `cd <repo> && git pull`, y luego **Reload** en la pestaña Web. Los dibujos de `data/` no se tocan porque están en `.gitignore`. Si la carpeta no se creó con `git clone`, subir los archivos cambiados desde la pestaña **Files** (sin borrar `data/`) y pulsar **Reload**.
 
 La app gratuita se apaga a los 3 meses si nadie pulsa **Run until 3 months from today** en la pestaña Web.
 
@@ -96,6 +98,16 @@ Para correrlo en Google Colab:
 1. Abrir https://colab.research.google.com y subir el notebook (Archivo → Subir notebook).
 2. En la primera celda de código, poner la dirección de la app en `URL_DATASET` (por ejemplo `https://<usuario>.pythonanywhere.com/dataset.zip`), o dejarla vacía y subir el `.zip` cuando lo pida.
 3. Entorno de ejecución → Ejecutar todo. Con GPU (Entorno de ejecución → Cambiar tipo de entorno) es más rápido, pero no es obligatorio.
+
+## Adivina tu dibujo (`/probar`)
+
+La red entrenada corre directamente en el navegador con JavaScript puro (`static/modelo.js`), sin TensorFlow en el servidor. El script repite el mismo preprocesamiento del notebook (recorte a la tinta, margen, redimensionado Lanczos a 64×64) y luego las capas de la CNN: convolución, max pooling y densas.
+
+Para activarla:
+1. Correr el notebook completo. La última sección exporta `modelo_web.json` y `modelo_web.bin` (en Colab se descargan como `modelo_web.zip`).
+2. Copiar esos dos archivos a `static/modelo/` y pulsar **Reload** en PythonAnywhere.
+
+Mientras no haya modelo, la página muestra “Todavía no hay un modelo entrenado”.
 
 ## Recolección
 
