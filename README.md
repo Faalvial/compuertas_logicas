@@ -115,7 +115,7 @@ La sección 11 del notebook muestra además los mapas de activación de clase (C
 
 ## Adivina tu dibujo (página principal)
 
-La página envía el dibujo a `/predecir` y el servidor lo pasa por la CNN entrenada. Junto a cada porcentaje se muestra el símbolo de la compuerta.
+Al pulsar **Predecir**, la página envía el dibujo a `/predecir` y el servidor lo pasa por la CNN entrenada. Junto a cada porcentaje se muestra el símbolo de la compuerta. La predicción se pide con el botón y no al levantar el lápiz, para no mostrar una respuesta para un dibujo a medio hacer.
 
 También se puede **subir una imagen** (una foto de una compuerta dibujada en papel, una captura, etc.). El servidor separa el trazo del fondo, descarta lo que está lejos de la compuerta (un título, una marca de agua), lo centra en un lienzo de 256×256 y ajusta el grosor del trazo a unos 8 píxeles, para que se parezca a los dibujos con los que se entrenó la red (`desde_imagen` en `prediccion.py`). Luego la predice igual que un dibujo y la muestra en el lienzo.
 

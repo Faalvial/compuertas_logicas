@@ -8,6 +8,8 @@ const LADO_MAX_SUBIDA = 512;  // las fotos se achican antes de enviarlas
 const elGanadora = document.getElementById('ganadora');
 const elProbs = document.getElementById('probabilidades');
 const elArchivo = document.getElementById('archivo');
+const elPredecir = document.getElementById('predecir');
+const PIDE_DIBUJO = 'Dibuja una compuerta y pulsa Predecir';
 
 let trazos = [];
 let trazoActual = null;
@@ -66,9 +68,16 @@ async function enviar(datos) {
   return resp.json();
 }
 
+// La predicción se pide con el botón, cuando el dibujo está terminado: así no se
+// muestra una respuesta para un dibujo a medio hacer.
+function dibujoCambio() {
+  elPredecir.disabled = !trazos.length;
+  mostrarMensaje(trazos.length ? 'Pulsa Predecir cuando termines' : PIDE_DIBUJO);
+}
+
 async function adivinar() {
   if (!trazos.length) {
-    mostrarMensaje('Dibuja una compuerta');
+    mostrarMensaje(PIDE_DIBUJO);
     return;
   }
   const datos = await enviar({ imagen: lienzo.toDataURL('image/png') });
@@ -121,17 +130,18 @@ for (const tipo of ['pointerup', 'pointercancel']) {
   lienzo.addEventListener(tipo, () => {
     if (!trazoActual) return;
     trazoActual = null;
-    adivinar();
+    dibujoCambio();
   });
 }
 
-document.getElementById('borrar').addEventListener('click', () => { trazos = []; imagenSubida = null; redibujar(); adivinar(); });
-document.getElementById('deshacer').addEventListener('click', () => { trazos.pop(); redibujar(); adivinar(); });
+document.getElementById('borrar').addEventListener('click', () => { trazos = []; imagenSubida = null; redibujar(); dibujoCambio(); });
+document.getElementById('deshacer').addEventListener('click', () => { trazos.pop(); redibujar(); dibujoCambio(); });
+elPredecir.addEventListener('click', adivinar);
 document.getElementById('subir').addEventListener('click', () => elArchivo.click());
 elArchivo.addEventListener('change', () => {
   if (elArchivo.files.length) subirImagen(elArchivo.files[0]);
   elArchivo.value = '';
 });
 
-mostrarMensaje('Dibuja una compuerta');
+mostrarMensaje(PIDE_DIBUJO);
 redibujar();
