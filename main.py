@@ -27,6 +27,7 @@ DESCARTES_DIR = os.path.join(BASE_DIR, "descartados")
 RUTA_PESOS = os.path.join(BASE_DIR, "pesos_cnn.npz")  # lo genera el notebook
 
 CLASES = ["AND", "OR", "NOT", "NAND", "NOR", "XOR"]
+CLASES_MODELO = CLASES + ["OTRO"]  # la red además reconoce lo que no es una compuerta
 META_POR_CLASE = 500
 TAM_LIENZO = 256
 MIN_PIXELES = 300  # menos tinta que esto se considera un lienzo vacío
@@ -55,6 +56,10 @@ COMPUERTAS = {
     "XOR": {
         "svg": '<path d="M2 15H20.5M2 35H20.5M14 5Q26 25 14 45 M24 5Q36 25 24 45Q51 45 68 25Q51 5 24 5Z M68 25H88"/>',
         "tip": "Igual que OR, con una segunda curva separada detrás.",
+    },
+    "OTRO": {
+        "svg": '<path d="M37 15Q37 6 45 6Q54 6 54 14Q54 20 45 24V31"/><circle cx="45" cy="41" r="1.5"/>',
+        "tip": "Cualquier dibujo que no es una de las 6 compuertas.",
     },
 }
 
@@ -157,7 +162,7 @@ def predecir():
     if entrada is None:
         return jsonify(ok=False, error="Dibuja una compuerta"), 400
     probabilidades = prediccion.predecir(entrada, PESOS)
-    respuesta = {"ok": True, "clases": CLASES, "probabilidades": [round(float(p), 4) for p in probabilidades]}
+    respuesta = {"ok": True, "clases": CLASES_MODELO[: len(probabilidades)], "probabilidades": [round(float(p), 4) for p in probabilidades]}
     if subida:
         buf = io.BytesIO()
         img.save(buf, "PNG")

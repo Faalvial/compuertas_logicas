@@ -44,7 +44,8 @@ function mostrarMensaje(texto) {
 
 function mostrarResultado(datos) {
   const orden = datos.probabilidades.map((p, i) => [p, datos.clases[i]]).sort((a, b) => b[0] - a[0]);
-  elGanadora.textContent = orden[0][1] + ' · ' + Math.round(orden[0][0] * 100) + '%';
+  const nombre = orden[0][1] === 'OTRO' ? 'No parece una compuerta' : orden[0][1];
+  elGanadora.textContent = nombre + ' · ' + Math.round(orden[0][0] * 100) + '%';
   elGanadora.classList.remove('mensaje');
   elProbs.innerHTML = '';
   for (const [p, clase] of orden) {
