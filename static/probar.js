@@ -47,7 +47,7 @@ function mostrarResultado(datos) {
   elProbs.innerHTML = '';
   for (const [p, clase] of orden) {
     const li = document.createElement('li');
-    li.innerHTML = '<svg class="icono" viewBox="0 0 90 50" fill="none" stroke="currentColor" stroke-width="3" '
+    li.innerHTML = '<svg class="icono" width="48" height="27" viewBox="0 0 90 50" fill="none" stroke="currentColor" stroke-width="3" '
       + 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + COMPUERTAS[clase].svg + '</svg>'
       + '<span class="nombre"></span><span class="barra-fondo"><span class="barra-lleno"></span></span><span class="numero"></span>';
     li.querySelector('.nombre').textContent = clase;

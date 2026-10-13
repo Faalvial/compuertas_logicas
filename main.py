@@ -61,6 +61,17 @@ COMPUERTAS = {
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
+
+@app.url_defaults
+def version_estaticos(endpoint, valores):
+    """Agrega ?v=<fecha de modificación> a los archivos de static/ para que el navegador
+    no siga usando un style.css o .js viejo después de actualizar el sitio."""
+    if endpoint == "static" and "filename" in valores:
+        ruta = os.path.join(app.static_folder, valores["filename"])
+        if os.path.exists(ruta):
+            valores["v"] = int(os.path.getmtime(ruta))
+
+
 # Se crean al importar el módulo (no solo en __main__) para que también
 # existan cuando la app corre con gunicorn o en PythonAnywhere.
 for _clase in CLASES:
