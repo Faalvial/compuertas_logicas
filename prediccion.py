@@ -8,10 +8,12 @@ Los pesos se guardan desde el notebook en pesos_cnn.npz.
 import os
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 TAM = 64        # tamaño de entrada de la CNN, igual que en el notebook
 MARGEN = 0.08   # margen alrededor del dibujo, igual que en el notebook
+LIENZO = 256    # lado del lienzo de la app
+GROSOR = 8      # grosor del trazo en el lienzo de la app
 
 
 def cargar_pesos(ruta):
@@ -34,6 +36,54 @@ def preprocesar(imagen):
     cuadrado.paste(alfa.crop(caja), ((lado - (x1 - x0)) // 2, (lado - (y1 - y0)) // 2))
     pequena = cuadrado.resize((TAM, TAM), Image.Resampling.LANCZOS)
     return np.asarray(pequena, dtype=np.float32) / 255.0
+
+
+def umbral_otsu(gris):
+    """Umbral que mejor separa los píxeles oscuros (tinta) de los claros (papel)."""
+    hist = np.bincount(gris.ravel(), minlength=256).astype(np.float64)
+    p = hist / hist.sum()
+    w = np.cumsum(p)
+    mu = np.cumsum(p * np.arange(256))
+    varianza = (mu[-1] * w - mu) ** 2 / (w * (1 - w) + 1e-12)
+    return int(np.argmax(varianza))
+
+
+def desde_imagen(imagen):
+    """Convierte una imagen subida (foto de un dibujo en papel, captura, etc.) en un dibujo
+    como los del lienzo: trazo en el canal alfa, en 256x256 y con un grosor de unos 8 píxeles.
+    Devuelve None si no encuentra trazo."""
+    fondo = Image.new("RGBA", imagen.size, "white")
+    gris = np.asarray(Image.alpha_composite(fondo, imagen.convert("RGBA")).convert("L"))
+    tinta = gris <= umbral_otsu(gris)
+    if tinta.mean() > 0.5:          # trazo claro sobre fondo oscuro
+        tinta = ~tinta
+    mascara = Image.fromarray(tinta.astype(np.uint8) * 255).filter(ImageFilter.MedianFilter(3))
+    caja = mascara.getbbox()
+    if caja is None:
+        return None
+
+    # Se escala para que mida como un dibujo típico del lienzo (unos 210 píxeles de ancho o alto).
+    recorte = mascara.crop(caja)
+    escala = 210 / max(recorte.size)
+
+    # Antes de escalar, se engrosa o adelgaza el trazo para que después quede de unos 8 píxeles.
+    # Grosor del trazo = 2 * área / píxeles del borde.
+    t = np.asarray(recorte) > 0
+    borde = t & ~(np.roll(t, 1, 0) & np.roll(t, -1, 0) & np.roll(t, 1, 1) & np.roll(t, -1, 1))
+    grosor = 2 * t.sum() / max(borde.sum(), 1)
+    pasos = min(round(abs(GROSOR / escala - grosor) / 2), 12)
+    if pasos and grosor < GROSOR / escala:
+        recorte = recorte.filter(ImageFilter.MaxFilter(2 * pasos + 1))
+    elif pasos:
+        recorte = recorte.filter(ImageFilter.MinFilter(2 * min(pasos, int(grosor / 4)) + 1))
+    recorte = recorte.resize((max(1, round(recorte.width * escala)), max(1, round(recorte.height * escala))),
+                             Image.Resampling.LANCZOS).point(lambda v: 255 if v >= 128 else 0)
+
+    lienzo = Image.new("L", (LIENZO, LIENZO), 0)
+    lienzo.paste(recorte, ((LIENZO - recorte.width) // 2, (LIENZO - recorte.height) // 2))
+    dibujo = Image.new("RGBA", (LIENZO, LIENZO), (0, 0, 0, 0))
+    dibujo.putalpha(lienzo)
+    return dibujo
 
 
 def convolucion(x, kernel, sesgo):

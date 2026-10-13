@@ -114,7 +114,11 @@ Las conclusiones completas están al final del notebook.
 
 ## Adivina tu dibujo (`/probar`)
 
-La página envía el dibujo a `/predecir` y el servidor lo pasa por la CNN entrenada. El servidor no usa TensorFlow, porque ocupa más de 1 GB y el plan gratuito de PythonAnywhere da 512 MB. En su lugar, `prediccion.py` repite con numpy las capas de la CNN (convolución, max pooling y densas) usando los pesos que guarda el notebook, y aplica el mismo preprocesamiento del notebook (recorte a la tinta, margen y redimensionado a 64×64). Da las mismas probabilidades que Keras.
+La página envía el dibujo a `/predecir` y el servidor lo pasa por la CNN entrenada. Junto a cada porcentaje se muestra el símbolo de la compuerta.
+
+También se puede **subir una imagen** (una foto de una compuerta dibujada en papel, una captura, etc.). El servidor separa el trazo del fondo, lo centra en un lienzo de 256×256 y ajusta el grosor del trazo a unos 8 píxeles, para que se parezca a los dibujos con los que se entrenó la red (`desde_imagen` en `prediccion.py`). Luego la predice igual que un dibujo y la muestra en el lienzo.
+
+El servidor no usa TensorFlow, porque ocupa más de 1 GB y el plan gratuito de PythonAnywhere da 512 MB. En su lugar, `prediccion.py` repite con numpy las capas de la CNN (convolución, max pooling y densas) usando los pesos que guarda el notebook, y aplica el mismo preprocesamiento del notebook (recorte a la tinta, margen y redimensionado a 64×64). Da las mismas probabilidades que Keras.
 
 El repositorio ya trae `pesos_cnn.npz` con la CNN entrenada con el dataset final. En PythonAnywhere basta `cd <repo> && git pull` en la consola y **Reload** en la pestaña Web.
 

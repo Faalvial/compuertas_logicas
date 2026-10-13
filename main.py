@@ -85,15 +85,19 @@ def siguiente_clase(conteos):
     return random.choice([c for c in CLASES if conteos[c] == minimo])
 
 
-def leer_imagen(datos):
-    """Convierte el dataURL que envía el lienzo en una imagen PIL (None si no se puede)."""
+def leer_imagen(datos, del_lienzo=True):
+    """Convierte el dataURL que envía la página en una imagen PIL (None si no se puede).
+
+    Las imágenes del lienzo deben medir 256x256; las subidas pueden tener otro tamaño."""
     try:
         img_b64 = (datos.get("imagen") or "").split(",", 1)[-1]
         img = Image.open(io.BytesIO(base64.b64decode(img_b64)))
         img.load()
     except Exception:
         return None
-    if img.size != (TAM_LIENZO, TAM_LIENZO):
+    if del_lienzo and img.size != (TAM_LIENZO, TAM_LIENZO):
+        return None
+    if max(img.size) > 2048:
         return None
     return img.convert("RGBA")
 
@@ -119,22 +123,34 @@ def main():
 
 @app.route("/probar")
 def probar():
-    """Dibuja y la red adivina la compuerta."""
-    return render_template("probar.html", tam=TAM_LIENZO)
+    """Dibuja (o sube una imagen) y la red adivina la compuerta."""
+    return render_template("probar.html", tam=TAM_LIENZO, compuertas=COMPUERTAS)
 
 
 @app.route("/predecir", methods=["POST"])
 def predecir():
     if PESOS is None:
         return jsonify(ok=False, error="Todavía no hay un modelo entrenado"), 503
-    img = leer_imagen(request.get_json(silent=True) or {})
+    datos = request.get_json(silent=True) or {}
+    subida = bool(datos.get("subida"))
+    img = leer_imagen(datos, del_lienzo=not subida)
     if img is None:
         return jsonify(ok=False, error="La imagen no se pudo leer."), 400
+    if subida:
+        # Una foto o captura se convierte primero en un dibujo como los del lienzo.
+        img = prediccion.desde_imagen(img)
+        if img is None:
+            return jsonify(ok=False, error="No se encontró un dibujo en la imagen"), 400
     entrada = prediccion.preprocesar(img)
     if entrada is None:
         return jsonify(ok=False, error="Dibuja una compuerta"), 400
     probabilidades = prediccion.predecir(entrada, PESOS)
-    return jsonify(ok=True, clases=CLASES, probabilidades=[round(float(p), 4) for p in probabilidades])
+    respuesta = {"ok": True, "clases": CLASES, "probabilidades": [round(float(p), 4) for p in probabilidades]}
+    if subida:
+        buf = io.BytesIO()
+        img.save(buf, "PNG")
+        respuesta["dibujo"] = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+    return jsonify(respuesta)
 
 
 @app.route("/upload", methods=["POST"])
