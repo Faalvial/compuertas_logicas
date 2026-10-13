@@ -19,7 +19,7 @@ Adaptado de [PeterTXS09/letras_uni](https://github.com/PeterTXS09/letras_uni), q
 | | Descarga de todos los PNG en `/dataset.zip` |
 | | Página `/revisar` para ver los dibujos y descartar los malos |
 | | Contador de progreso por compuerta (meta: 500) |
-| | Página `/probar` que predice la compuerta en vivo, en el navegador |
+| | Página `/probar` que predice la compuerta en vivo con la CNN entrenada |
 
 ## Rutas
 
@@ -27,6 +27,7 @@ Adaptado de [PeterTXS09/letras_uni](https://github.com/PeterTXS09/letras_uni), q
 |---|---|
 | `/` | Página para dibujar |
 | `/probar` | “Adivina tu dibujo”: dibujas y la red dice qué compuerta es |
+| `/predecir` (POST) | Devuelve la probabilidad de cada compuerta para un dibujo |
 | `/upload` (POST) | Guarda un dibujo en `data/<CLASE>/` |
 | `/stats` | Conteo por clase en JSON |
 | `/revisar?clase=AND` | Galería de dibujos de una clase |
@@ -101,11 +102,12 @@ Para correrlo en Google Colab:
 
 ## Adivina tu dibujo (`/probar`)
 
-La red entrenada corre directamente en el navegador con JavaScript puro (`static/modelo.js`), sin TensorFlow en el servidor. El script repite el mismo preprocesamiento del notebook (recorte a la tinta, margen, redimensionado Lanczos a 64×64) y luego las capas de la CNN: convolución, max pooling y densas.
+La página envía el dibujo a `/predecir` y el servidor lo pasa por la CNN entrenada. El servidor no usa TensorFlow, porque ocupa más de 1 GB y el plan gratuito de PythonAnywhere da 512 MB. En su lugar, `prediccion.py` repite con numpy las capas de la CNN (convolución, max pooling y densas) usando los pesos que guarda el notebook, y aplica el mismo preprocesamiento del notebook (recorte a la tinta, margen y redimensionado a 64×64). Da las mismas probabilidades que Keras.
 
 Para activarla:
-1. Correr el notebook completo. La última sección exporta `modelo_web.json` y `modelo_web.bin` (en Colab se descargan como `modelo_web.zip`).
-2. Copiar esos dos archivos a `static/modelo/` y pulsar **Reload** en PythonAnywhere.
+1. Correr el notebook completo. La última sección guarda `pesos_cnn.npz` (en Colab se descarga solo).
+2. Subir `pesos_cnn.npz` al repositorio, junto a `main.py`.
+3. En PythonAnywhere: `cd <repo> && git pull` en la consola y **Reload** en la pestaña Web.
 
 Mientras no haya modelo, la página muestra “Todavía no hay un modelo entrenado”.
 

@@ -1,16 +1,13 @@
-// Página "Adivina tu dibujo": dibuja, preprocesa y predice en el navegador.
+// Página "Adivina tu dibujo": envía el dibujo al servidor y muestra lo que predice la CNN.
 const lienzo = document.getElementById('lienzo');
 const ctx = lienzo.getContext('2d');
 const GROSOR = 8;
 
 const elGanadora = document.getElementById('ganadora');
 const elProbs = document.getElementById('probabilidades');
-const elDetalle = document.getElementById('detalle');
-const vistaRed = document.getElementById('entrada-red');
 
 let trazos = [];
 let trazoActual = null;
-let modelo = null;
 
 function posicion(e) {
   const r = lienzo.getBoundingClientRect();
@@ -32,38 +29,28 @@ function redibujar() {
   }
 }
 
-function mostrarEntrada(entrada, tam) {
-  vistaRed.width = tam;
-  vistaRed.height = tam;
-  const c = vistaRed.getContext('2d');
-  const img = c.createImageData(tam, tam);
-  for (let i = 0; i < entrada.length; i++) {
-    const v = 255 - Math.round(entrada[i] * 255);
-    img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v;
-    img.data[i * 4 + 3] = 255;
-  }
-  c.putImageData(img, 0, 0);
-}
-
-function limpiarResultado(texto) {
+function mostrarMensaje(texto) {
   elGanadora.textContent = texto;
   elGanadora.classList.add('mensaje');
   elProbs.innerHTML = '';
-  vistaRed.getContext('2d').clearRect(0, 0, vistaRed.width, vistaRed.height);
 }
 
-function adivinar() {
-  if (!modelo) return;
-  const entrada = Modelo.preprocesar(lienzo, modelo.tam, modelo.margen);
-  if (!entrada) {
-    limpiarResultado('Dibuja una compuerta');
+async function adivinar() {
+  if (!trazos.length) {
+    mostrarMensaje('Dibuja una compuerta');
     return;
   }
-  mostrarEntrada(entrada, modelo.tam);
-  const t0 = performance.now();
-  const probs = Modelo.predecir(modelo, entrada);
-  const ms = Math.round(performance.now() - t0);
-  const orden = probs.map((p, i) => [p, modelo.clases[i]]).sort((a, b) => b[0] - a[0]);
+  const resp = await fetch('/predecir', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imagen: lienzo.toDataURL('image/png') }),
+  });
+  const datos = await resp.json();
+  if (!datos.ok) {
+    mostrarMensaje(datos.error);
+    return;
+  }
+  const orden = datos.probabilidades.map((p, i) => [p, datos.clases[i]]).sort((a, b) => b[0] - a[0]);
   elGanadora.textContent = orden[0][1] + ' · ' + Math.round(orden[0][0] * 100) + '%';
   elGanadora.classList.remove('mensaje');
   elProbs.innerHTML = '';
@@ -75,7 +62,6 @@ function adivinar() {
     li.querySelector('.numero').textContent = (p * 100).toFixed(1) + '%';
     elProbs.appendChild(li);
   }
-  elDetalle.textContent = 'Así ve la red tu dibujo (' + modelo.tam + '×' + modelo.tam + ' píxeles). Predicción en ' + ms + ' ms.';
 }
 
 lienzo.addEventListener('pointerdown', (e) => {
@@ -101,13 +87,5 @@ for (const tipo of ['pointerup', 'pointercancel']) {
 document.getElementById('borrar').addEventListener('click', () => { trazos = []; redibujar(); adivinar(); });
 document.getElementById('deshacer').addEventListener('click', () => { trazos.pop(); redibujar(); adivinar(); });
 
-Modelo.cargar(BASE_MODELO)
-  .then((m) => {
-    modelo = m;
-    limpiarResultado('Dibuja una compuerta');
-  })
-  .catch(() => {
-    limpiarResultado('Todavía no hay un modelo entrenado');
-    elDetalle.textContent = 'Exporta el modelo desde el notebook y copia modelo_web.json y modelo_web.bin en static/modelo/.';
-  });
+mostrarMensaje('Dibuja una compuerta');
 redibujar();

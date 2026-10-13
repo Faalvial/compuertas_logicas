@@ -19,9 +19,12 @@ import numpy as np
 from flask import Flask, abort, jsonify, render_template, request, send_file, send_from_directory
 from PIL import Image
 
+import prediccion
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DESCARTES_DIR = os.path.join(BASE_DIR, "descartados")
+RUTA_PESOS = os.path.join(BASE_DIR, "pesos_cnn.npz")  # lo genera el notebook
 
 CLASES = ["AND", "OR", "NOT", "NAND", "NOR", "XOR"]
 META_POR_CLASE = 500
@@ -63,6 +66,9 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 for _clase in CLASES:
     os.makedirs(os.path.join(DATA_DIR, _clase), exist_ok=True)
 
+# Pesos de la CNN para /probar (None hasta que se copie pesos_cnn.npz y se recargue la app).
+PESOS = prediccion.cargar_pesos(RUTA_PESOS)
+
 
 def archivos(clase):
     carpeta = os.path.join(DATA_DIR, clase)
@@ -77,6 +83,19 @@ def siguiente_clase(conteos):
     """Elige la clase con menos dibujos para que el dataset quede balanceado."""
     minimo = min(conteos.values())
     return random.choice([c for c in CLASES if conteos[c] == minimo])
+
+
+def leer_imagen(datos):
+    """Convierte el dataURL que envía el lienzo en una imagen PIL (None si no se puede)."""
+    try:
+        img_b64 = (datos.get("imagen") or "").split(",", 1)[-1]
+        img = Image.open(io.BytesIO(base64.b64decode(img_b64)))
+        img.load()
+    except Exception:
+        return None
+    if img.size != (TAM_LIENZO, TAM_LIENZO):
+        return None
+    return img.convert("RGBA")
 
 
 def limpiar_autor(texto):
@@ -100,8 +119,22 @@ def main():
 
 @app.route("/probar")
 def probar():
-    """Dibuja y la red adivina la compuerta (la predicción corre en el navegador)."""
+    """Dibuja y la red adivina la compuerta."""
     return render_template("probar.html", tam=TAM_LIENZO)
+
+
+@app.route("/predecir", methods=["POST"])
+def predecir():
+    if PESOS is None:
+        return jsonify(ok=False, error="Todavía no hay un modelo entrenado"), 503
+    img = leer_imagen(request.get_json(silent=True) or {})
+    if img is None:
+        return jsonify(ok=False, error="La imagen no se pudo leer."), 400
+    entrada = prediccion.preprocesar(img)
+    if entrada is None:
+        return jsonify(ok=False, error="Dibuja una compuerta"), 400
+    probabilidades = prediccion.predecir(entrada, PESOS)
+    return jsonify(ok=True, clases=CLASES, probabilidades=[round(float(p), 4) for p in probabilidades])
 
 
 @app.route("/upload", methods=["POST"])
@@ -111,16 +144,9 @@ def upload():
     if clase not in CLASES:
         return jsonify(ok=False, error="Clase desconocida."), 400
 
-    try:
-        img_b64 = (datos.get("imagen") or "").split(",", 1)[-1]
-        img = Image.open(io.BytesIO(base64.b64decode(img_b64)))
-        img.load()
-    except Exception:
+    img = leer_imagen(datos)
+    if img is None:
         return jsonify(ok=False, error="La imagen no se pudo leer."), 400
-
-    if img.size != (TAM_LIENZO, TAM_LIENZO):
-        return jsonify(ok=False, error="Tamaño de imagen inesperado."), 400
-    img = img.convert("RGBA")
     if (np.array(img)[:, :, 3] > 0).sum() < MIN_PIXELES:
         return jsonify(ok=False, error="El dibujo está vacío o es muy pequeño."), 400
 

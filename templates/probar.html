@@ -10,7 +10,7 @@
 <body>
   <main class="contenido">
     <h1>Adivina tu dibujo</h1>
-    <p class="etiqueta">Dibuja cualquier compuerta y la red neuronal dirá cuál es. La predicción se calcula en tu navegador.</p>
+    <p class="etiqueta">Dibuja cualquier compuerta y la red neuronal dirá cuál es.</p>
 
     <div class="zona zona-probar">
       <section class="dibujo" aria-label="Lienzo">
@@ -25,10 +25,6 @@
         <p class="etiqueta">Predicción</p>
         <p id="ganadora" class="ganadora">…</p>
         <ul id="probabilidades" class="probabilidades"></ul>
-        <div class="vista-red">
-          <canvas id="entrada-red" width="64" height="64" aria-label="Imagen que recibe la red"></canvas>
-          <p id="detalle" class="tip-suave">Así ve la red tu dibujo después del preprocesamiento.</p>
-        </div>
       </section>
     </div>
 
@@ -37,10 +33,6 @@
     </footer>
   </main>
 
-  <script src="{{ url_for('static', filename='modelo.js') }}"></script>
-  <script>
-    const BASE_MODELO = {{ url_for('static', filename='modelo/')|tojson }};
-  </script>
   <script src="{{ url_for('static', filename='probar.js') }}"></script>
 </body>
 </html>
