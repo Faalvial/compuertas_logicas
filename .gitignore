@@ -7,3 +7,4 @@ descartados/
 X.npy
 y.npy
 *.zip
+!dataset.zip
