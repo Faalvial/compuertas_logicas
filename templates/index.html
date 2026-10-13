@@ -8,13 +8,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header class="barra">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Uni-logo_transparente_granate.png" alt="UNI" class="logo">
-    <div>
-      <p class="sub">PC2 · Computación Gráfica</p>
-      <p class="sub">Clasificación de compuertas lógicas dibujadas a mano</p>
-    </div>
-  </header>
+  {% include "encabezado.html" %}
 
   <main class="contenido">
     <h1>Dibuja una compuerta <span id="clase" class="clase">{{ clase }}</span></h1>

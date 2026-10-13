@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  {% include "encabezado.html" %}
+
   <main class="contenido">
     <h1>Revisar dibujos <span class="clase">{{ clase }}</span></h1>
     <nav class="pestanas">
