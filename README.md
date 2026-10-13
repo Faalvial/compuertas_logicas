@@ -109,8 +109,9 @@ El notebook del repositorio ya está ejecutado con el dataset final, así que lo
 | CNN | 99.6% (2 errores) |
 | CNN a 16×16 / 28×28 / 64×64 | 98.7% / 99.1% / 99.6% |
 | CNN con personas que no vio al entrenar (promedio) | 99.6% |
+| CNN con Global Average Pooling (8.5 veces menos parámetros) | 98.4% (7 errores) |
 
-Las conclusiones completas están al final del notebook.
+La sección 11 del notebook muestra además los mapas de activación de clase (CAM): en qué parte del dibujo se fija la red para decidir. Las conclusiones completas están al final del notebook.
 
 ## Adivina tu dibujo (página principal)
 
