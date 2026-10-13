@@ -8,7 +8,7 @@ Los pesos se guardan desde el notebook en pesos_cnn.npz.
 import os
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 TAM = 64        # tamaño de entrada de la CNN, igual que en el notebook
 MARGEN = 0.08   # margen alrededor del dibujo, igual que en el notebook
@@ -48,6 +48,43 @@ def umbral_otsu(gris):
     return int(np.argmax(varianza))
 
 
+def quitar_lo_que_no_es_compuerta(mascara):
+    """Deja solo la compuerta cuando la imagen trae además texto, marcas o manchas.
+
+    Se engrosa la tinta para que los trazos cercanos de un mismo dibujo queden unidos y se
+    separa en manchas. La compuerta es la mancha con la caja más grande: un texto ocupa una
+    franja delgada aunque sea ancho. Se conservan también las manchas que caen dentro de esa
+    caja o muy cerca de ella (por ejemplo, el arco suelto de un XOR)."""
+    lado = max(mascara.size)
+    unida = mascara.filter(ImageFilter.MaxFilter(2 * max(1, lado // 80) + 1))
+    etiquetas = unida.point(lambda v: 255 if v else 0)
+    cajas = []
+    while len(cajas) < 254:
+        a = np.asarray(etiquetas)
+        libres = np.flatnonzero(a == 255)
+        if not libres.size:
+            break
+        y, x = divmod(int(libres[0]), a.shape[1])
+        ImageDraw.floodfill(etiquetas, (x, y), len(cajas) + 1)
+        cajas.append(etiquetas.point(lambda v, n=len(cajas) + 1: 255 if v == n else 0).getbbox())
+    if len(cajas) <= 1:
+        return mascara
+    # Se parte de la mancha con la caja más grande y se le suman las que están cerca de ella.
+    principal = max(range(len(cajas)), key=lambda n: (cajas[n][2] - cajas[n][0]) * (cajas[n][3] - cajas[n][1]))
+    x0, y0, x1, y1 = cajas[principal]
+    dentro, cambio = {principal + 1}, True
+    while cambio:
+        cambio = False
+        limite = 0.05 * max(x1 - x0, y1 - y0)
+        for n, (a0, b0, a1, b1) in enumerate(cajas):
+            if n + 1 not in dentro and max(a0 - x1, x0 - a1, b0 - y1, y0 - b1) <= limite:
+                dentro.add(n + 1)
+                x0, y0, x1, y1 = min(x0, a0), min(y0, b0), max(x1, a1), max(y1, b1)
+                cambio = True
+    conservar = np.isin(np.asarray(etiquetas), list(dentro))
+    return Image.fromarray(np.where(conservar, np.asarray(mascara), 0).astype(np.uint8))
+
+
 def desde_imagen(imagen):
     """Convierte una imagen subida (foto de un dibujo en papel, captura, etc.) en un dibujo
     como los del lienzo: trazo en el canal alfa, en 256x256 y con un grosor de unos 8 píxeles.
@@ -58,6 +95,7 @@ def desde_imagen(imagen):
     if tinta.mean() > 0.5:          # trazo claro sobre fondo oscuro
         tinta = ~tinta
     mascara = Image.fromarray(tinta.astype(np.uint8) * 255).filter(ImageFilter.MedianFilter(3))
+    mascara = quitar_lo_que_no_es_compuerta(mascara)
     caja = mascara.getbbox()
     if caja is None:
         return None
