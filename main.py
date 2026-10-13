@@ -66,7 +66,7 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 for _clase in CLASES:
     os.makedirs(os.path.join(DATA_DIR, _clase), exist_ok=True)
 
-# Pesos de la CNN para /probar (None hasta que se copie pesos_cnn.npz y se recargue la app).
+# Pesos de la CNN para la página principal (None hasta que se copie pesos_cnn.npz y se recargue la app).
 PESOS = prediccion.cargar_pesos(RUTA_PESOS)
 
 
@@ -107,7 +107,7 @@ def limpiar_autor(texto):
     return texto[:20] or "anonimo"
 
 
-@app.route("/")
+@app.route("/recolectar")
 def main():
     conteos = contar()
     return render_template(
@@ -121,6 +121,7 @@ def main():
     )
 
 
+@app.route("/")
 @app.route("/probar")
 def probar():
     """Dibuja (o sube una imagen) y la red adivina la compuerta."""

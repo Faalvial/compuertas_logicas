@@ -19,14 +19,14 @@ Adaptado de [PeterTXS09/letras_uni](https://github.com/PeterTXS09/letras_uni), q
 | | Descarga de todos los PNG en `/dataset.zip` |
 | | Página `/revisar` para ver los dibujos y descartar los malos |
 | | Contador de progreso por compuerta (meta: 500) |
-| | Página `/probar` que predice la compuerta en vivo con la CNN entrenada |
+| | Página principal “Adivina tu dibujo”, que predice la compuerta en vivo con la CNN entrenada |
 
 ## Rutas
 
 | Ruta | Qué hace |
 |---|---|
-| `/` | Página para dibujar |
-| `/probar` | “Adivina tu dibujo”: dibujas y la red dice qué compuerta es |
+| `/` | “Adivina tu dibujo”: dibujas o subes una imagen y la red dice qué compuerta es (también en `/probar`) |
+| `/recolectar` | Página para dibujar y guardar dibujos del dataset |
 | `/predecir` (POST) | Devuelve la probabilidad de cada compuerta para un dibujo |
 | `/upload` (POST) | Guarda un dibujo en `data/<CLASE>/` |
 | `/stats` | Conteo por clase en JSON |
@@ -112,7 +112,7 @@ El notebook del repositorio ya está ejecutado con el dataset final, así que lo
 
 Las conclusiones completas están al final del notebook.
 
-## Adivina tu dibujo (`/probar`)
+## Adivina tu dibujo (página principal)
 
 La página envía el dibujo a `/predecir` y el servidor lo pasa por la CNN entrenada. Junto a cada porcentaje se muestra el símbolo de la compuerta.
 
