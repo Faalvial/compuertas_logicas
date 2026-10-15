@@ -93,25 +93,13 @@ La app gratuita se apaga a los 3 meses si nadie pulsa **Run until 3 months from 
 
 ## Entrenamiento (notebook)
 
-`entrenamiento_compuertas.ipynb` hace todo el proceso: carga, preprocesamiento, exploración, un MLP base, la CNN, métricas (accuracy, precisión, recall, F1, matriz de confusión), análisis de las parejas difíciles (AND/NAND, OR/NOR, OR/XOR), la prueba con dibujos que no son compuertas, el experimento de resolución (16, 28 y 64 píxeles), la prueba con personas que no se usaron para entrenar y una CNN con Global Average Pooling y sus mapas CAM.
+`entrenamiento_compuertas.ipynb` hace lo que pide la tarea: carga, preprocesamiento, exploración, división en entrenamiento, validación y prueba, una CNN, métricas (accuracy, precisión, recall, F1, matriz de confusión), los dibujos mal clasificados, la exportación de los pesos para la app y las conclusiones.
 
 Para correrlo en Google Colab:
 1. Abrir https://colab.research.google.com y subir el notebook (Archivo → Subir notebook).
-2. Entorno de ejecución → Ejecutar todo. El notebook descarga solo el `dataset.zip` de este repositorio. Con GPU (Entorno de ejecución → Cambiar tipo de entorno) es más rápido, pero no es obligatorio.
-
-El notebook del repositorio ya está ejecutado con el dataset final, así que los resultados se ven sin correrlo.
-
-### Resultados
-
-| | Accuracy (525 dibujos de prueba) |
-|---|---|
-| MLP (base) | 97.9% |
-| CNN | 99.6% (2 errores) |
-| CNN a 16×16 / 28×28 / 64×64 | 98.1% / 99.6% / 98.9% |
-| CNN con personas que no vio al entrenar (promedio) | 99.0% |
-| CNN con Global Average Pooling (8.5 veces menos parámetros) | 99.2% (4 errores) |
-
-La sección 11 del notebook muestra además los mapas de activación de clase (CAM): en qué parte del dibujo se fija la red para decidir. Las conclusiones completas están al final del notebook.
+2. Entorno de ejecución → Cambiar tipo de entorno → GPU (T4). Sin GPU también funciona, pero tarda más.
+3. Entorno de ejecución → Ejecutar todo. El notebook descarga solo el `dataset.zip` de este repositorio.
+4. Completar los números de las conclusiones y guardar el notebook ejecutado en el repositorio.
 
 ## Adivina tu dibujo (página principal)
 
