@@ -154,6 +154,6 @@ def predecir(entrada, pesos):
     x = max_pooling(convolucion(x, c5, s5))
     x = x.reshape(-1)                  # Flatten
     x = np.maximum(x @ d1 + t1, 0)     # Dense(128) + ReLU
-    z = x @ d2 + t2                    # Dense(6)
+    z = x @ d2 + t2                    # Dense(7)
     z = np.exp(z - z.max())            # Softmax
     return z / z.sum()
