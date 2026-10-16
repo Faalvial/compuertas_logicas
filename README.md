@@ -1,6 +1,6 @@
 # Compuertas lógicas dibujadas a mano
 
-PC2 de Computación Gráfica (UNI). Clasificación de 6 compuertas lógicas dibujadas a mano con una red neuronal: **AND, OR, NOT, NAND, NOR, XOR**, más una clase **OTRO** para los dibujos que no son ninguna de ellas.
+PC2 de Computación Gráfica (UNI). Clasificación de 6 compuertas lógicas dibujadas a mano con una red neuronal: **AND, OR, NOT, NAND, NOR, XOR**.
 
 Adaptado de [PeterTXS09/letras_uni](https://github.com/PeterTXS09/letras_uni), que recolectaba las letras U, N, I.
 
@@ -93,35 +93,35 @@ La app gratuita se apaga a los 3 meses si nadie pulsa **Run until 3 months from 
 
 ## Entrenamiento (notebook)
 
-`entrenamiento_compuertas.ipynb` hace todo el proceso: carga, preprocesamiento, exploración, un MLP base, la CNN, métricas (accuracy, precisión, recall, F1, matriz de confusión), análisis de las parejas difíciles (AND/NAND, OR/NOR, OR/XOR), la prueba con dibujos que no son compuertas, el experimento de resolución (16, 28 y 64 píxeles), la prueba con personas que no se usaron para entrenar y una CNN con Global Average Pooling y sus mapas CAM.
+`cnn_compuertas_curso.ipynb` hace todo el proceso con lo visto en clase: carga, preprocesamiento, exploración, aumento de datos (giros, desplazamientos, zoom y volteo vertical como capas de Keras), tres modelos (un MLP base, una CNN como la de las diapositivas y una CNN con Global Average Pooling), métricas (accuracy, precisión, recall, F1, matriz de confusión), análisis de las parejas difíciles (AND/NAND, OR/NOR, OR/XOR, AND/OR) y mapas de activación de clase (CAM).
 
 Para correrlo en Google Colab:
 1. Abrir https://colab.research.google.com y subir el notebook (Archivo → Subir notebook).
-2. Entorno de ejecución → Ejecutar todo. El notebook descarga solo el `dataset.zip` de este repositorio. Con GPU (Entorno de ejecución → Cambiar tipo de entorno) es más rápido, pero no es obligatorio.
+2. Entorno de ejecución → Ejecutar todo. El notebook descarga solo el `dataset.zip` de este repositorio. Funciona con o sin GPU; en CPU cada época de las CNN toma unos segundos.
 
 El notebook del repositorio ya está ejecutado con el dataset final, así que los resultados se ven sin correrlo.
 
 ### Resultados
 
-| | Accuracy (525 dibujos de prueba) |
-|---|---|
-| MLP (base) | 97.9% |
-| CNN | 99.6% (2 errores) |
-| CNN a 16×16 / 28×28 / 64×64 | 98.1% / 99.6% / 98.9% |
-| CNN con personas que no vio al entrenar (promedio) | 99.0% |
-| CNN con Global Average Pooling (8.5 veces menos parámetros) | 99.2% (4 errores) |
+10 épocas, 450 dibujos de prueba:
 
-La sección 11 del notebook muestra además los mapas de activación de clase (CAM): en qué parte del dibujo se fija la red para decidir. Las conclusiones completas están al final del notebook.
+| Modelo | Parámetros | Accuracy |
+|---|---|---|
+| MLP (base) | 525,190 | 97.8% (10 errores) |
+| CNN | 78,598 | 98.4% (7 errores) |
+| CNN con Global Average Pooling | 23,686 | 83.6% (74 errores) |
+
+Sin aumento de datos, la CNN da 98.9% y la CNN con GAP 85.8%. Las conclusiones completas, con la comparación y lo que muestran los mapas CAM, están al final del notebook.
 
 ## Adivina tu dibujo (página principal)
 
-Al pulsar **Predecir**, la página envía el dibujo a `/predecir` y el servidor lo pasa por la CNN entrenada. Junto a cada porcentaje se muestra el símbolo de la compuerta. La predicción se pide con el botón y no al levantar el lápiz, para no mostrar una respuesta para un dibujo a medio hacer. Con el modelo de 7 clases, si la red elige OTRO, la página muestra «No parece una compuerta».
+Al pulsar **Predecir**, la página envía el dibujo a `/predecir` y el servidor lo pasa por la CNN entrenada. Junto a cada porcentaje se muestra el símbolo de la compuerta. La predicción se pide con el botón y no al levantar el lápiz, para no mostrar una respuesta para un dibujo a medio hacer.
 
 También se puede **subir una imagen** (una foto de una compuerta dibujada en papel, una captura, etc.). El servidor separa el trazo del fondo, descarta lo que está lejos de la compuerta (un título, una marca de agua), lo centra en un lienzo de 256×256 y ajusta el grosor del trazo a unos 8 píxeles, para que se parezca a los dibujos con los que se entrenó la red (`desde_imagen` en `prediccion.py`). Luego la predice igual que un dibujo y la muestra en el lienzo.
 
 El servidor no usa TensorFlow, porque ocupa más de 1 GB y el plan gratuito de PythonAnywhere da 512 MB. En su lugar, `prediccion.py` repite con numpy las capas de la CNN (convolución, max pooling y densas) usando los pesos que guarda el notebook, y aplica el mismo preprocesamiento del notebook (recorte a la tinta, margen y redimensionado a 64×64). Da las mismas probabilidades que Keras.
 
-La página usa `pesos_cnn_curso.npz`, la CNN de `cnn_compuertas_curso.ipynb` (6 clases, sin OTRO). El repositorio también conserva `pesos_cnn.npz`, la CNN de 7 clases de `entrenamiento_compuertas.ipynb`; para volver a ella basta cambiar `RUTA_PESOS` en `main.py`, porque `prediccion.py` reconoce cuál de las dos redes es por la cantidad de pesos. En PythonAnywhere basta `cd <repo> && git pull` en la consola y **Reload** en la pestaña Web.
+La página usa `pesos_cnn_curso.npz`, los pesos de la CNN que guarda `cnn_compuertas_curso.ipynb`. Como la red solo conoce las 6 compuertas, ante un dibujo que no es ninguna igual elige una de ellas. En PythonAnywhere basta `cd <repo> && git pull` en la consola y **Reload** en la pestaña Web.
 
 Si se vuelve a entrenar:
 1. Correr el notebook completo. La sección de exportación guarda `pesos_cnn_curso.npz` (en Colab se descarga solo).
@@ -131,7 +131,7 @@ Mientras no haya modelo, la página muestra “Todavía no hay un modelo entrena
 
 ## Datos
 
-`dataset.zip` tiene los 3500 dibujos usados para entrenar, 500 por clase. Los 3000 de compuertas se descargaron de la app el 13 de octubre de 2026. Los 500 de OTRO (letras, números, formas, flechas y garabatos) se generaron con `python generar_otro.py OTRO 500`, que imita el trazo del lienzo; su autor figura como `sintetico`. Cada archivo se llama `<CLASE>/<fecha>_<autor>_<id>.png`.
+`dataset.zip` tiene los 3000 dibujos de compuertas usados para entrenar, 500 por clase, descargados de la app el 13 de octubre de 2026. Cada archivo se llama `<CLASE>/<fecha>_<autor>_<id>.png`. El zip trae además una carpeta `OTRO` con 500 dibujos sintéticos de una versión anterior con 7 clases; el notebook la ignora.
 
 Aporte de cada persona a las 3000 compuertas:
 

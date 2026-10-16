@@ -3,8 +3,7 @@
 TensorFlow ocupa más de 1 GB y no entra en el plan gratuito de PythonAnywhere.
 Pero una red ya entrenada solo hace multiplicaciones con sus pesos, así que
 aquí se repiten con numpy las mismas capas de la CNN del notebook.
-Los pesos se guardan desde el notebook: pesos_cnn_curso.npz (cnn_compuertas_curso.ipynb,
-6 clases) o pesos_cnn.npz (entrenamiento_compuertas.ipynb, 7 clases con OTRO).
+Los pesos se guardan desde cnn_compuertas_curso.ipynb en pesos_cnn_curso.npz.
 """
 import os
 
@@ -125,14 +124,10 @@ def desde_imagen(imagen):
     return dibujo
 
 
-def convolucion(x, kernel, sesgo, same=True):
-    """Conv2D 3x3 con ReLU. x: (alto, ancho, canales).
-
-    Con padding "same" la salida mide lo mismo que la entrada; con "valid" (sin relleno)
-    pierde k - 1 píxeles por lado: 64 -> 62."""
+def convolucion(x, kernel, sesgo):
+    """Conv2D 3x3 con padding "valid" (sin relleno) y ReLU. x: (alto, ancho, canales).
+    La salida pierde k - 1 píxeles por lado: 64 -> 62."""
     k = kernel.shape[0]
-    if same:
-        x = np.pad(x, ((k // 2, k // 2), (k // 2, k // 2), (0, 0)))
     alto, ancho = x.shape[0] - k + 1, x.shape[1] - k + 1
     salida = np.zeros((alto, ancho, kernel.shape[3]), dtype=np.float32) + sesgo
     for i in range(k):
@@ -153,25 +148,15 @@ def max_pooling(x):
 def predecir(entrada, pesos):
     """Probabilidad de cada clase para una imagen de TAM x TAM.
 
-    El aumento de datos y el dropout solo actúan al entrenar, por eso no aparecen.
-    Según la cantidad de pesos se reconoce de qué notebook viene el modelo.
+    CNN del notebook (padding "valid"):
+    Conv(16) -> MaxPool -> Conv(32) -> MaxPool -> Conv(64) -> Flatten -> Dense(6)
+    El aumento de datos solo actúa al entrenar, por eso no aparece.
     """
+    c1, s1, c2, s2, c3, s3, d1, t1 = pesos
     x = entrada[:, :, None]
-    if len(pesos) == 8:
-        # CNN del notebook del curso (padding "valid"):
-        # Conv(16) -> MaxPool -> Conv(32) -> MaxPool -> Conv(64) -> Flatten -> Dense(6)
-        c1, s1, c2, s2, c3, s3, d1, t1 = pesos
-        x = max_pooling(convolucion(x, c1, s1, same=False))   # 62 -> 31
-        x = max_pooling(convolucion(x, c2, s2, same=False))   # 29 -> 14
-        x = convolucion(x, c3, s3, same=False)                # 12x12x64
-        z = x.reshape(-1) @ d1 + t1                           # Flatten (9216) + Dense(6)
-    else:
-        c1, s1, c2, s2, c3, s3, c4, s4, c5, s5, d1, t1, d2, t2 = pesos
-        x = max_pooling(convolucion(convolucion(x, c1, s1), c2, s2))
-        x = max_pooling(convolucion(convolucion(x, c3, s3), c4, s4))
-        x = max_pooling(convolucion(x, c5, s5))
-        x = x.reshape(-1)                  # Flatten
-        x = np.maximum(x @ d1 + t1, 0)     # Dense(128) + ReLU
-        z = x @ d2 + t2                    # Dense(7)
-    z = np.exp(z - z.max())            # Softmax
+    x = max_pooling(convolucion(x, c1, s1))   # 62 -> 31
+    x = max_pooling(convolucion(x, c2, s2))   # 29 -> 14
+    x = convolucion(x, c3, s3)                # 12x12x64
+    z = x.reshape(-1) @ d1 + t1               # Flatten (9216) + Dense(6)
+    z = np.exp(z - z.max())                   # Softmax
     return z / z.sum()
