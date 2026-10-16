@@ -7,7 +7,7 @@ Proyecto adaptado de [PeterTXS09/letras_uni](https://github.com/PeterTXS09/letra
 **Aplicación publicada:** https://faalvial.pythonanywhere.com/  
 **Repositorio:** https://github.com/Faalvial/compuertas_logicas
 
-> **Estado actual:** la página utiliza `pesos_cnn_curso.npz`, entrenado para **6 clases**. Aunque `dataset.zip` contiene 500 dibujos adicionales en la carpeta `OTRO`, **la versión actual no está entrenada para rechazar dibujos ajenos a las seis compuertas**: siempre asigna alguna de ellas. El notebook y los pesos del antiguo modelo de 7 clases ya no forman parte de este commit.
+> **Estado actual:** la página utiliza `pesos_cnn_curso.npz`, entrenado para **6 clases**. **No está entrenada para rechazar dibujos ajenos a las seis compuertas**: siempre asigna alguna de ellas.
 
 ## Qué cambió respecto al repo original
 
@@ -47,7 +47,7 @@ La interfaz se implementa con **HTML, CSS y JavaScript**, el servidor con **Flas
 
 Los dibujos recolectados se guardan como `data/<CLASE>/<fecha>_<autor>_<id>.png`, con lienzos de **256 × 256 píxeles** y el trazo en el **canal alfa** (fondo transparente). El servidor exige al menos **300 píxeles con alfa distinto de cero** para aceptar un dibujo y limita las solicitudes a **2 MB**.
 
-**Importante:** el endpoint `/dataset.zip` genera un ZIP a partir de los archivos presentes en `data/`; **no es lo mismo** que el archivo histórico `dataset.zip` incluido en el repositorio. Una instalación nueva crea `data/` vacía, por lo que sus contadores comienzan en cero hasta que se recolecten o se importen dibujos. La clase `OTRO` no participa en los endpoints de recolección o preparación actuales.
+**Importante:** el endpoint `/dataset.zip` genera un ZIP a partir de los archivos presentes en `data/`; **no es lo mismo** que el archivo histórico `dataset.zip` incluido en el repositorio. Una instalación nueva crea `data/` vacía, por lo que sus contadores comienzan en cero hasta que se recolecten o se importen dibujos.
 
 ## Correr en local
 
@@ -86,7 +86,7 @@ El repositorio incluye los pesos `pesos_cnn_curso.npz`, por lo que la predicció
 python -c "import zipfile; zipfile.ZipFile('dataset.zip').extractall('data')"
 ```
 
-Esta extracción también crea `data/OTRO`, pero la aplicación ignora esa carpeta. No hace falta realizar este paso para usar la predicción, ya que el modelo entrenado se encuentra en el archivo `.npz`.
+No hace falta realizar este paso para usar la predicción, ya que el modelo entrenado se encuentra en el archivo `.npz`.
 
 Para activar el botón **Descartar** en `/revisar`, definir `CLAVE_ADMIN` antes de iniciar la aplicación:
 
@@ -205,7 +205,7 @@ El proceso de predicción es el siguiente:
 
 **Inferencia ligera:** el entrenamiento se realiza en Keras, pero el servidor web **no necesita TensorFlow**. `prediccion.py` reproduce las operaciones de inferencia con NumPy y carga los **78.598 parámetros** almacenados en `pesos_cnn_curso.npz`. Así se reducen las dependencias necesarias para el alojamiento web.
 
-**Limitación importante:** la salida contiene exclusivamente **AND, OR, NOT, NAND, NOR y XOR**. Si el usuario dibuja una letra, un número u otra figura, el clasificador puede asignarle una compuerta con una probabilidad alta; **no cuenta actualmente con detección confiable de «OTRO»**. Aunque queda código heredado para interpretar pesos de otra arquitectura, **`pesos_cnn.npz` y `entrenamiento_compuertas.ipynb` se eliminaron del repositorio** y no pueden activarse simplemente cambiando la ruta.
+**Limitación importante:** la salida contiene exclusivamente **AND, OR, NOT, NAND, NOR y XOR**. Si el usuario dibuja una letra, un número u otra figura, el clasificador puede asignarle una compuerta con una probabilidad alta; **no tiene una clase para rechazar dibujos que no son compuertas**.
 
 Si se vuelve a entrenar la CNN actual:
 
@@ -217,7 +217,7 @@ Si falta el archivo de pesos al iniciar el servidor, `/predecir` devuelve el men
 
 ## Datos
 
-El archivo **`dataset.zip` incluido en el repositorio contiene 3.500 PNG de 256 × 256 píxeles**, organizados por carpeta:
+El archivo **`dataset.zip` incluido en el repositorio contiene 3.000 PNG de 256 × 256 píxeles**, 500 por compuerta, organizados en una carpeta por clase:
 
 | Clase | Dibujos | Uso actual |
 |---|---:|---|
@@ -227,12 +227,11 @@ El archivo **`dataset.zip` incluido en el repositorio contiene 3.500 PNG de 256 
 | NAND | 500 | Entrenamiento y evaluación |
 | NOR | 500 | Entrenamiento y evaluación |
 | XOR | 500 | Entrenamiento y evaluación |
-| OTRO | 500 | Conservados en el archivo; **no usados por la CNN actual** |
-| **Total** | **3.500** | **3.000 usados para las seis clases** |
+| **Total** | **3.000** | |
 
-Los 3.000 ejemplos de compuertas proceden de la recolección con la aplicación. Los 500 ejemplos de `OTRO` figuran en el ZIP con autor `sintetico` y contienen dibujos que no representan compuertas. El script `generar_otro.py`, con el que se generaron originalmente, **ya no está en el commit actual**.
+Los 3.000 dibujos proceden de la recolección con la aplicación.
 
-Distribución de aportes en las **3.000 imágenes de compuertas**, verificada a partir de los nombres de archivo:
+Distribución de aportes en las **3.000 imágenes**, verificada a partir de los nombres de archivo:
 
 | Persona / identificador | Dibujos | Aporte |
 |---|---:|---:|
