@@ -24,10 +24,10 @@ import prediccion
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DESCARTES_DIR = os.path.join(BASE_DIR, "descartados")
-RUTA_PESOS = os.path.join(BASE_DIR, "pesos_cnn.npz")  # lo genera el notebook
+RUTA_PESOS = os.path.join(BASE_DIR, "pesos_cnn_curso.npz")  # lo genera cnn_compuertas_curso.ipynb
 
 CLASES = ["AND", "OR", "NOT", "NAND", "NOR", "XOR"]
-CLASES_MODELO = CLASES + ["OTRO"]  # la red además reconoce lo que no es una compuerta
+CLASES_MODELO = CLASES + ["OTRO"]  # el modelo de 7 clases (pesos_cnn.npz) además reconoce lo que no es una compuerta
 META_POR_CLASE = 500
 TAM_LIENZO = 256
 MIN_PIXELES = 300  # menos tinta que esto se considera un lienzo vacío
@@ -82,7 +82,7 @@ def version_estaticos(endpoint, valores):
 for _clase in CLASES:
     os.makedirs(os.path.join(DATA_DIR, _clase), exist_ok=True)
 
-# Pesos de la CNN para la página principal (None hasta que se copie pesos_cnn.npz y se recargue la app).
+# Pesos de la CNN para la página principal (None hasta que se copie pesos_cnn_curso.npz y se recargue la app).
 PESOS = prediccion.cargar_pesos(RUTA_PESOS)
 
 

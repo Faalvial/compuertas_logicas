@@ -115,17 +115,17 @@ La sección 11 del notebook muestra además los mapas de activación de clase (C
 
 ## Adivina tu dibujo (página principal)
 
-Al pulsar **Predecir**, la página envía el dibujo a `/predecir` y el servidor lo pasa por la CNN entrenada. Junto a cada porcentaje se muestra el símbolo de la compuerta. La predicción se pide con el botón y no al levantar el lápiz, para no mostrar una respuesta para un dibujo a medio hacer. Si la red elige OTRO, la página muestra «No parece una compuerta».
+Al pulsar **Predecir**, la página envía el dibujo a `/predecir` y el servidor lo pasa por la CNN entrenada. Junto a cada porcentaje se muestra el símbolo de la compuerta. La predicción se pide con el botón y no al levantar el lápiz, para no mostrar una respuesta para un dibujo a medio hacer. Con el modelo de 7 clases, si la red elige OTRO, la página muestra «No parece una compuerta».
 
 También se puede **subir una imagen** (una foto de una compuerta dibujada en papel, una captura, etc.). El servidor separa el trazo del fondo, descarta lo que está lejos de la compuerta (un título, una marca de agua), lo centra en un lienzo de 256×256 y ajusta el grosor del trazo a unos 8 píxeles, para que se parezca a los dibujos con los que se entrenó la red (`desde_imagen` en `prediccion.py`). Luego la predice igual que un dibujo y la muestra en el lienzo.
 
 El servidor no usa TensorFlow, porque ocupa más de 1 GB y el plan gratuito de PythonAnywhere da 512 MB. En su lugar, `prediccion.py` repite con numpy las capas de la CNN (convolución, max pooling y densas) usando los pesos que guarda el notebook, y aplica el mismo preprocesamiento del notebook (recorte a la tinta, margen y redimensionado a 64×64). Da las mismas probabilidades que Keras.
 
-El repositorio ya trae `pesos_cnn.npz` con la CNN entrenada con el dataset final. En PythonAnywhere basta `cd <repo> && git pull` en la consola y **Reload** en la pestaña Web.
+La página usa `pesos_cnn_curso.npz`, la CNN de `cnn_compuertas_curso.ipynb` (6 clases, sin OTRO). El repositorio también conserva `pesos_cnn.npz`, la CNN de 7 clases de `entrenamiento_compuertas.ipynb`; para volver a ella basta cambiar `RUTA_PESOS` en `main.py`, porque `prediccion.py` reconoce cuál de las dos redes es por la cantidad de pesos. En PythonAnywhere basta `cd <repo> && git pull` en la consola y **Reload** en la pestaña Web.
 
 Si se vuelve a entrenar:
-1. Correr el notebook completo. La sección de exportación guarda `pesos_cnn.npz` (en Colab se descarga solo).
-2. Reemplazar `pesos_cnn.npz` en el repositorio, junto a `main.py`, y repetir `git pull` y **Reload**.
+1. Correr el notebook completo. La sección de exportación guarda `pesos_cnn_curso.npz` (en Colab se descarga solo).
+2. Reemplazar `pesos_cnn_curso.npz` en el repositorio, junto a `main.py`, y repetir `git pull` y **Reload**.
 
 Mientras no haya modelo, la página muestra “Todavía no hay un modelo entrenado”.
 
